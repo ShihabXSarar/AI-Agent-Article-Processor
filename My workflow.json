@@ -1,0 +1,270 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "2c551c09-cfa1-4b93-b387-4180d7681643",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "a0ec70e7-2dcb-4386-9890-01e2c8a29aba",
+      "name": "Webhook",
+      "webhookId": "2c551c09-cfa1-4b93-b387-4180d7681643"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a helpful AI assistant. Please read the provided article and do two things:\n1. Summarize it in 3-5 sentences.\n2. Extract 3-5 key insights as bullet points.\n\nCRITICAL INSTRUCTION: You must output your response in strict JSON format exactly like this:\n{\n  \"summary\": \"Your 3-5 sentence summary goes here...\",\n  \"insights\": \"Your bullet points go here...\"\n}\n\nArticle text:\n{{ $json.data.markdown }}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "07116dff-2fa8-40f2-ad27-d54b3838d52b",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Vr1ve7WyshukKj9P",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1fiRBvDin-FiOrOf8hbv2Md3dhU9ksnGex053R5cDDYw",
+          "mode": "list",
+          "cachedResultName": "AI Agent",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fiRBvDin-FiOrOf8hbv2Md3dhU9ksnGex053R5cDDYw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fiRBvDin-FiOrOf8hbv2Md3dhU9ksnGex053R5cDDYw/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Summary": "={{ JSON.parse($json.content.parts[0].text).summary }}",
+            "Insights": "={{ JSON.parse($json.content.parts[0].text).insights }}",
+            "Email": "={{ $('Webhook').item.json.body.email }}",
+            "Article URL": "={{ $('Webhook').item.json.body.article_url }}",
+            "Session ID": "={{ $('Webhook').item.json.body.session_id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Session ID",
+              "displayName": "Session ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Article URL",
+              "displayName": "Article URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Insights",
+              "displayName": "Insights",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        768,
+        0
+      ],
+      "id": "671f238d-bfee-4518-a9e8-e3e524c355fd",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P806RSpz5KZjTbp2",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.Email }}",
+        "subject": "🤖 Your AI Article Summary.",
+        "emailType": "text",
+        "message": "=Hello!\n\nHere is the AI summary of the article you requested:\n\nSUMMARY:\n{{ $json.Summary }}\n\nKEY INSIGHTS:\n{{ $json.Insights }}\n\nOriginal Link: {{ $json['Article URL'] }}\n\n---\nSession ID: {{ $json['Session ID'] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        976,
+        0
+      ],
+      "id": "53a224e7-f677-41e3-8abd-8747395b944d",
+      "name": "Send a message",
+      "webhookId": "a6e82975-525a-44cd-a9e3-f5f0aebf4876",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "ocD752BPR7v0oaTB",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v1/scrape",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "=url",
+              "value": "={{ $json.body.article_url }}"
+            },
+            {
+              "name": "=formats",
+              "value": "={{ [\"markdown\"] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "128700dc-995a-4ef4-97de-311d45708830",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ZXGmrnXTrh8Xl8D3",
+          "name": "Header Auth account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "ff54998f-d999-4939-8bc6-77c4a6c229d6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bdcddbce7f7b2101439d04f6abe6a9a7e31d3747fb1c480615ebfdf91211735e"
+  },
+  "nodeGroups": [],
+  "id": "PpRrRki1EgwppsGD",
+  "tags": []
+}
