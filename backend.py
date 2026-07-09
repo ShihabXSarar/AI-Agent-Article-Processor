@@ -28,7 +28,9 @@ class ArticleRequest(BaseModel):
 
 
 # n8n Webhook URL loaded from env
-N8N_WEBHOOK_URL = os.getenv("N8N_WEBHOOK_URL", "https://kingrocco.app.n8n.cloud/webhook/2c551c09-cfa1-4b93-b387-4180d7681643")
+N8N_WEBHOOK_URL = os.getenv("N8N_WEBHOOK_URL")
+if not N8N_WEBHOOK_URL:
+    raise ValueError("ERROR: N8N_WEBHOOK_URL is not set in environment variables or .env file.")
 
 
 @app.post("/process-article")
